@@ -8,16 +8,16 @@ namespace Synology\Api\Client;
 abstract class Client
 {
 
-    public const PROTOCOL_HTTP = 'http';
+    const PROTOCOL_HTTP = 'http';
 
-    public const PROTOCOL_HTTPS = 'https';
+    const PROTOCOL_HTTPS = 'https';
 
-    public const API_NAMESPACE = 'SYNO';
+    const API_NAMESPACE = 'SYNO';
 
-    public const API_SERVICE_NAME = 'API';
+    const API_SERVICE_NAME = 'API';
 
-    public const CONNECT_TIMEOUT = 2000;
-    public const REQUEST_TIMEOUT = 300000;
+    const CONNECT_TIMEOUT = 2000;
+    const REQUEST_TIMEOUT = 300000;
 
     private $_protocol = self::PROTOCOL_HTTP;
 
@@ -90,7 +90,7 @@ abstract class Client
      *
      * @return string
      */
-    protected function getBaseUrl(): string
+    private function getBaseUrl()
     {
         return $this->_protocol.'://'.$this->_address.':'.$this->_port.'/webapi/';
     }
@@ -108,7 +108,7 @@ abstract class Client
      *
      * @throws SynologyException
      */
-    protected function request($service, $api, $path, $method, $params = array(), $version = null, $httpMethod = 'get', $file = null)
+    public function request($service, $api, $path, $method, $params = array(), $version = null, $httpMethod = 'get', $file = null)
     {
         if (!is_array($params)) {
             $params = array(
@@ -159,11 +159,13 @@ abstract class Client
             ]);
             curl_setopt($ch, CURLOPT_HEADER, 1);
         }
-
+        // debug
+        //curl_setopt($ch, CURLOPT_VERBOSE, 1);
+        
         // set URL and other appropriate options
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, self::CONNECT_TIMEOUT);
-        curl_setopt($ch, CURLOPT_TIMEOUT_MS, self::REQUEST_TIMEOUT);
+        //curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, self::CONNECT_TIMEOUT);
+        //curl_setopt($ch, CURLOPT_TIMEOUT_MS, self::REQUEST_TIMEOUT);
 
         // Verify SSL or not
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->_verifySSL);
@@ -175,11 +177,11 @@ abstract class Client
         curl_close($ch);
 
         $this->log($info['http_code'], 'Response code');
+        $this->log($result, 'Result');
         if (200 === $info['http_code']) {
             if (preg_match('#(plain|text)#', $info['content_type'])) {
                 return $this->parseRequest($result);
             }
-
             return $result;
         }
 
@@ -198,7 +200,7 @@ abstract class Client
      *
      * @return string
      */
-    private function buildDataFiles($boundary, $fields, $files): string
+    private function buildDataFiles($boundary, $fields, $files)
     {
         $data = '';
         $eol = "\r\n";
@@ -236,7 +238,10 @@ abstract class Client
     {
         if (($data = json_decode(trim($json), true)) !== null) {
             if ($data['success'] === true) {
-                return $data['data'] ?? true;
+                if(array_key_exists('data',$data) )
+                  return $data['data'];
+                else
+                  return true;
             }
 
             if (array_key_exists($data['error']['code'], self::$_errorCodes)) {
@@ -254,7 +259,7 @@ abstract class Client
      *
      * @return Client
      */
-    public function activateDebug(): Client
+    public function activateDebug()
     {
         $this->_debug = true;
 
@@ -267,7 +272,7 @@ abstract class Client
      * @param mixed $value
      * @param string $key
      */
-    protected function log($value, $key = null): void
+    private function log($value, $key = null)
     {
         if ($this->_debug) {
             if ($key != null) {
@@ -288,7 +293,7 @@ abstract class Client
      * @return array
      * @throws SynologyException
      */
-    public function getAvailableApi(): array
+    public function getAvailableApi()
     {
         return $this->request('API','Info', 'query.cgi', 'query', array('query' => 'all'));
     }
@@ -302,7 +307,7 @@ abstract class Client
      * @return Client
      * @throws SynologyException
      */
-    public function connect($username, $password, $sessionName = null): Client
+    public function connect($username, $password, $sessionName = null)
     {
         if (! empty($sessionName)) {
             $this->_sessionName = $sessionName;
@@ -320,8 +325,11 @@ abstract class Client
         $data = $this->request('API','Auth', 'auth.cgi', 'login', $options, 2);
 
         // save session name id
-        $this->_sid = $data['sid'];
-
+        //var_dump($data);
+        if($data['sid']){
+          $this->log($data['sid'],"save ssid");
+          $this->_sid = $data['sid'];
+        }
         return $this;
     }
 
@@ -331,7 +339,7 @@ abstract class Client
      * @return Client
      * @throws SynologyException
      */
-    public function disconnect(): Client
+    public function disconnect()
     {
         $this->log($this->_sessionName, 'Disconnect Session');
         $this->request('API', 'Auth', 'auth.cgi', 'logout', array(
@@ -349,7 +357,7 @@ abstract class Client
      * @throws SynologyException
      * @return string
      */
-    public function getSessionId(): string
+    public function getSessionId()
     {
         if ($this->_sid) {
             return $this->_sid;
@@ -363,7 +371,7 @@ abstract class Client
      *
      * @return boolean
      */
-    public function isConnected(): bool
+    public function isConnected()
     {
         return null !== $this->_sid;
     }
@@ -373,7 +381,7 @@ abstract class Client
      *
      * @return string
      */
-    public function getSessionName(): string
+    public function getSessionName()
     {
         return $this->_sessionName;
     }

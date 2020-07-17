@@ -8,9 +8,9 @@ namespace Synology\Api\Client;
 class FileStationClient extends Client
 {
 
-    public const API_SERVICE_NAME = 'FileStation';
+    const API_SERVICE_NAME = 'FileStation';
 
-    public const API_NAMESPACE = 'SYNO';
+    const API_NAMESPACE = 'SYNO';
 
     /**
      * Info API setup
@@ -46,7 +46,7 @@ class FileStationClient extends Client
      * - version_string
      * @throws SynologyException
      */
-    public function getInfo(): array
+    public function getInfo()
     {
         return $this->request(self::API_SERVICE_NAME, 'Info', 'FileStation/info.cgi', 'getinfo');
     }
@@ -70,7 +70,7 @@ class FileStationClient extends Client
         $sortby = 'name',
         $sortdirection = 'asc',
         $additional = false
-    ): array {
+    ) {
         return $this->request(
             self::API_SERVICE_NAME,
             'List',
@@ -95,7 +95,7 @@ class FileStationClient extends Client
      * @return array
      * @throws SynologyException
      */
-    public function getObjectInfo($type, $id): array
+    public function getObjectInfo($type, $id)
     {
         switch ($type) {
             case 'List':
@@ -133,7 +133,7 @@ class FileStationClient extends Client
         $sortdirection = 'asc',
         $pattern = '',
         $filetype = 'all',
-        $additional = false
+        $additional = 1
     ) {
         return $this->request(
             self::API_SERVICE_NAME,
@@ -148,7 +148,8 @@ class FileStationClient extends Client
                 'sort_direction' => $sortdirection,
                 'pattern' => $pattern,
                 'filetype' => $filetype,
-                'additional' => $additional ? 'real_path,size,owner,time,perm' : '',
+                //'additional' => $additional ? 'real_path,size,owner,time,perm' : '',
+                'additional' => $additional ? 'time' : '',
             ]
         );
     }
@@ -158,10 +159,11 @@ class FileStationClient extends Client
      *
      * @param $file
      * @param $filename
+     * @param $remoteDir where to upload
      * @return mixed
      * @throws SynologyException
      */
-    public function uploadFile($file, $filename)
+    public function uploadFile($file, $filename,$remoteDir)
     {
         return $this->request(
             self::API_SERVICE_NAME,
@@ -169,7 +171,7 @@ class FileStationClient extends Client
             'entry.cgi',
             'upload',
             [
-                'path' => '/Kallicontrol',
+                'path' => $remoteDir,
                 'overwrite' => 'true',
                 'create_parents' => 'true',
                 'filename' => $filename,
@@ -203,7 +205,7 @@ class FileStationClient extends Client
         $sortdirection = 'asc',
         $filetype = 'all',
         $additional = false
-    ): array {
+    ) {
         return $this->request(
             self::API_SERVICE_NAME,
             'List',
@@ -218,6 +220,7 @@ class FileStationClient extends Client
                 'pattern' => $pattern,
                 'filetype' => $filetype,
                 'additional' => $additional ? 'real_path,size,owner,time,perm' : '',
+                //'additional' => $additional ? 'time,perm' : '',
             ]
         );
     }
@@ -230,7 +233,7 @@ class FileStationClient extends Client
      * @return array
      * @throws SynologyException
      */
-    public function download($path, $mode = 'open'): array
+    public function download($path, $mode = 'open')
     {
         return $this->request(
             self::API_SERVICE_NAME,
