@@ -265,4 +265,22 @@ class FileStationClient extends Client
             1
         );
     }
+    /** Create Folder
+     * $synfile->createFolder('/iCatch_Drive','createByBDCRM');
+     */
+    
+    public function createFolder($folder_path, $name, $force_parent = false, $additional = false)
+    {
+        return $this->request(
+            self::API_SERVICE_NAME,
+            'CreateFolder', 
+            'entry.cgi', 
+            'create', 
+            ['folder_path'  => $folder_path,
+            'name'         => $name,
+            'force_parent' => $force_parent,
+            'additional'   => $additional ? 'real_path,size,owner,time,perm' : ''],
+            1
+        );
+    }
 }
