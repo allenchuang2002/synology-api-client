@@ -148,9 +148,9 @@ class FileStationClient extends Client
                 'sort_direction' => $sortdirection,
                 'pattern' => $pattern,
                 'filetype' => $filetype,
-                //'additional' => $additional ? 'real_path,size,owner,time,perm' : '',
-                'additional' => $additional ? 'time' : '',
-            ]
+                'additional' => $additional ? 'real_path,size,owner,time,perm' : '',
+                //'additional' => $additional ? 'real_path,time' : ''
+            ],1
         );
     }
 
@@ -221,7 +221,7 @@ class FileStationClient extends Client
                 'filetype' => $filetype,
                 'additional' => $additional ? 'real_path,size,owner,time,perm' : '',
                 //'additional' => $additional ? 'time,perm' : '',
-            ]
+            ],1
         );
     }
 
@@ -238,19 +238,22 @@ class FileStationClient extends Client
         return $this->request(
             self::API_SERVICE_NAME,
             'Download',
-            'FileStation/file_download.cgi',
+            'entry.cgi',
             'download',
             [
                 'path' => $path,
                 'mode' => $mode,
-            ]
+            ],
+            2
         );
     }
 
 
     /**
      * Delete file from a given path
-     *
+     * modify by Allen.Chuang 2020.7.23
+     * for safety change the API do not recursive delete sub-folders and files.
+     * 
      * @param string $path like '/home'
      * @return mixed
      * @throws SynologyException
@@ -261,7 +264,8 @@ class FileStationClient extends Client
             'Delete',
             'entry.cgi',
             'delete',
-            ['path' => $path],
+            ['path' => $path,
+            'recursive'=>false],
             1
         );
     }
