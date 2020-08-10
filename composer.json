@@ -1,5 +1,5 @@
 {
-    "name": "TC200b/synology-api-client",
+    "name": "tc200b/synology-api-client",
     "description": "Synology API client",
     "homepage": "https://github.com/victorbalssa/synology-api-client",
     "version": "0.3.3",
